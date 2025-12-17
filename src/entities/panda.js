@@ -49,5 +49,19 @@ export function makePanda(k) {
         }
     });
 
+    // Variable Jump Height (Short Hop)
+    // If key/mouse is released while moving up, cut the velocity
+    k.onKeyRelease("space", () => {
+        if (panda.vel.y < 0) { // "Up" is negative Y in 2D
+            panda.vel.y *= 0.5; // Damping factor
+        }
+    });
+
+    k.onMouseRelease(() => {
+        if (panda.vel.y < 0) {
+            panda.vel.y *= 0.5;
+        }
+    });
+
     return panda;
 }
