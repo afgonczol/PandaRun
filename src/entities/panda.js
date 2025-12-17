@@ -13,11 +13,11 @@ export function makePanda(k) {
 
             setSpeedEffect(type) {
                 if (type === "fast") {
-                    this.speedMultiplier = 1.5;
+                    this.speedMultiplier = 1.2;
                     this.isCrying = false;
                     this.color = k.WHITE;
                 } else if (type === "slow") {
-                    this.speedMultiplier = 0.5;
+                    this.speedMultiplier = 0.8;
                     this.isCrying = true;
                     this.color = k.rgb(200, 200, 255); // Blue-ish tint for sadness
                 } else {
