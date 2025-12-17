@@ -42,8 +42,8 @@ function spawnEntity(k, type) {
         let scale = 0.12;
 
         if (type === "bamboo") {
-            yPos = k.height() - 120;
-            scale = 0.15;
+            yPos = k.height() - 100;
+            scale = 0.2;
         } else {
             // Pickups might be slightly higher to jump for? Or on ground?
             // Let's vary it
@@ -78,9 +78,11 @@ function spawnEntity(k, type) {
                         this.scale = k.vec2(this.baseScale * (1 + pulse));
                     } else if (spriteName !== "gap") {
                         // Collectables: Bob + Swing
-                        this.pos.y = this.startY + Math.sin(t) * 10;
+                        const bobRate = 1.1;
+                        this.pos.y = this.startY + Math.sin(t * bobRate) * 10;
                         // Swing +/- 15 degrees
-                        this.angle = Math.sin(t) * 15;
+                        const swingRate = 0.9;
+                        this.angle = Math.sin(t * swingRate) * 15;
                     }
                 }
             },
