@@ -22,6 +22,7 @@ k.loadSprite("pie", "sprites/pie.png");
 k.loadSprite("cake", "sprites/cake.png");
 k.loadSprite("onion", "sprites/onion.png");
 k.loadSprite("ground", "sprites/ground.png");
+k.loadSprite("background", "sprites/background.png");
 
 // Load Sounds
 k.loadSound("music", "sounds/music.mp3");
@@ -57,6 +58,26 @@ k.scene("game", () => {
         volume: 0.5,
     });
     k.setGravity(1600);
+
+    // --- Background (Parallax) ---
+    // Calculate scale to fit height
+    // We don't know image size yet, but Kaplay handles it. 
+    // We'll spawn two images side by side.
+
+    const bg1 = k.add([
+        k.sprite("background"),
+        k.pos(0, 0),
+        k.scale(k.width() / 2880), // Width of background image is 2880px
+        k.z(-10),
+        "bg"
+    ]);
+    const bg2 = k.add([
+        k.sprite("background"),
+        k.pos(k.width(), 0), // Start adjacent
+        k.scale(k.width() / 2880), // Width of background image is 2880px
+        k.z(-10),
+        "bg"
+    ]);
 
     // Config
     const GROUND_Y = k.height() - 40;
@@ -112,6 +133,20 @@ k.scene("game", () => {
             // Cleanup
             if (obj.pos.x < -blockWidth * 2) {
                 k.destroy(obj);
+            }
+        });
+
+        // Move Background
+        k.get("bg").forEach((bg) => {
+            // Parallax factor 0.2 (move slower than foreground)
+            bg.move(-gameSpeed * 0.2, 0);
+
+            // Loop functionality
+            // Use scaled width!
+            const scaledWidth = bg.width * bg.scale.x;
+
+            if (bg.pos.x <= -scaledWidth) {
+                bg.pos.x += scaledWidth * 2;
             }
         });
 
