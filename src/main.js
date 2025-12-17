@@ -40,38 +40,43 @@ k.scene("game", () => {
     // Physics
     k.setGravity(1600);
 
-    // --- Dynamic Ground & Gap System ---
-
     // Config
     const GROUND_Y = k.height() - 40;
-    const TILE_WIDTH = 1280; // Assuming the new ground sprite is substantial, or we repeat it
-    // If sprite is small, we need more. Let's assume user ground is like a block.
-    // If we want random gaps, we should spawn smaller blocks.
-    // Let's assume specific block width for logic.
-    const BLOCK_WIDTH = 200;
 
-    let nextGroundX = 0;
+    // Configurable Block Width (will be auto-detected)
+    let blockWidth = 200;
 
-    // We will spawn ground blocks continuously
     function spawnGroundBlock(x) {
-        k.add([
-            k.sprite("ground"), // Use the sprite!
+        const blk = k.add([
+            k.sprite("ground"),
             k.pos(x, GROUND_Y),
             k.area(),
             k.body({ isStatic: true }),
-            k.scale(0.5), // Scale down logic
-            k.anchor("botleft"), // Anchor for easier alignment
+            k.scale(0.75), // Scaled down by 25% (75% of original)
+            k.anchor("botleft"),
             "ground",
             "obstacle_mover"
         ]);
-        // Also add a rect collider fallback if sprite is weird? 
-        // kaplay sprite area() auto-generates from image size.
+        return blk;
     }
 
-    // Initial buffer of ground
-    for (let i = 0; i < 10; i++) {
+    // --- Ground Initialization ---
+    let nextGroundX = 0;
+
+    // Spawn first block to measure it
+    const firstBlock = spawnGroundBlock(nextGroundX);
+
+    // Auto-detect width if available
+    if (firstBlock.width && firstBlock.width > 0) {
+        blockWidth = firstBlock.width * firstBlock.scale.x;
+    }
+
+    nextGroundX += blockWidth;
+
+    // Fill screen buffer
+    while (nextGroundX < k.width() + blockWidth * 2) {
         spawnGroundBlock(nextGroundX);
-        nextGroundX += BLOCK_WIDTH;
+        nextGroundX += blockWidth;
     }
 
     // --- Entities ---
@@ -86,21 +91,15 @@ k.scene("game", () => {
         k.get("obstacle_mover").forEach((obj) => {
             obj.move(-gameSpeed, 0);
 
-            // Cleanup logic
-            if (obj.pos.x < -BLOCK_WIDTH * 2) {
+            // Cleanup
+            if (obj.pos.x < -blockWidth * 2) {
                 k.destroy(obj);
             }
         });
 
-        // Ground Spawning Logic
-        // We track 'nextGroundX' in WORLD space, but since world moves left, 
-        // effectively we need to see if the rightmost ground is coming onto screen?
-        // Actually, simpler:
-        // 'nextGroundX' is relative to SCREEN logic if we spawn continuously?
-        // No, simplest is: Check the right-most ground block.
-        // If its X pos < k.width() + buffer, spawn new one.
+        // --- Endless Ground Spawning ---
 
-        // Find the rightmost ground
+        // Find the rightmost ground block
         let rightmostX = -99999;
         const grounds = k.get("ground");
 
@@ -109,34 +108,25 @@ k.scene("game", () => {
                 if (g.pos.x > rightmostX) rightmostX = g.pos.x;
             });
         } else {
-            // Check if we just fell into a gap and no ground is left, 
-            // or if we need to restart spawning? 
-            rightmostX = -BLOCK_WIDTH; // Fallback to restart
+            // Fallback if all ground falls off (shouldn't happen in normal loop)
+            rightmostX = -blockWidth;
         }
 
-        // If we have space on the right, spawn!
-        if (rightmostX < k.width() + BLOCK_WIDTH) {
-            // Chance for a GAP
-            // Only spawn gap if we aren't already in one (logic handled by just skipping X)
-            // And maybe don't spawn gap immediately at start (handled by initial buffer)
+        // If we have exposed space on the right, spawn new ground
+        if (rightmostX < k.width() + blockWidth) {
 
-            if (k.chance(0.2)) { // 20% chance of gap
-                // Gap size = 1 or 2 blocks
-                const gapSize = k.choose([1, 1.5, 2]);
-                rightmostX += BLOCK_WIDTH * gapSize;
-                // Don't spawn visual ground, just advance X
+            // 20% Chance for a GAP
+            if (k.chance(0.2)) {
+                const gapSize = k.choose([1, 1.5, 2]); // Gap size in blocks
+                rightmostX += blockWidth * gapSize;
+                // Just advance X, creating empty space
             }
 
-            // Spawn next block at new X
-            spawnGroundBlock(rightmostX + BLOCK_WIDTH); // Actually this logic is slightly flawed due to moving reference frame.
-            // Correct approach with moving frame:
-            // We just need to add a new block at k.width() when the previous one moves inside?
-            // Actually, simplest is: Spawn at fixed offset from *last spawned block*.
-            // Since last block is moving, we can't store static nextGroundX.
-            // We must reference the 'rightmostX' of the actual entities.
+            // Spawn next block
+            spawnGroundBlock(rightmostX + blockWidth);
         }
 
-        // --- Game Over Conditions ---
+        // --- Game Over ---
 
         // 1. Time
         ui.timerLabel.time -= k.dt();
@@ -150,7 +140,7 @@ k.scene("game", () => {
             k.go("gameover", Math.floor(score));
         }
 
-        // Keep Panda fixed horizontally (counter friction from moving ground)
+        // 3. Keep Panda fixed horizontally (counter friction)
         panda.pos.x = 200;
 
         // Update Score
@@ -158,7 +148,7 @@ k.scene("game", () => {
         ui.scoreLabel.value = score;
     });
 
-    // Collisions
+    // --- Collisions ---
 
     // Pie (+Time)
     panda.onCollide("pie", (pie) => {
@@ -189,7 +179,7 @@ k.scene("game", () => {
         });
     });
 
-    // Bamboo (Stun/Penality)
+    // Bamboo (Stun/Penalty)
     panda.onCollide("bamboo", (bamboo) => {
         k.destroy(bamboo);
         ui.timerLabel.time -= 5;
@@ -197,8 +187,6 @@ k.scene("game", () => {
         panda.color = k.RED;
         k.wait(0.2, () => panda.color = k.WHITE);
     });
-
-    // Gap (Game Over triggered by Y check now, so explicit collision not needed unless we use "Kill Floor")
 });
 
 k.scene("gameover", (score) => {
