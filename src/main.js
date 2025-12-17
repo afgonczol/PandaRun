@@ -18,6 +18,15 @@ k.loadSprite("cake", "sprites/cake.png");
 k.loadSprite("onion", "sprites/onion.png");
 k.loadSprite("ground", "sprites/ground.png");
 
+// Load Sounds
+k.loadSound("music", "sounds/music.mp3");
+k.loadSound("jump", "sounds/jump.mp3");
+k.loadSound("pie", "sounds/pie.mp3");
+k.loadSound("cake", "sounds/cake.mp3");
+k.loadSound("onion", "sounds/onion.mp3");
+k.loadSound("bamboo", "sounds/bamboo.mp3");
+k.loadSound("gameover", "sounds/gameover.mp3");
+
 k.scene("start", () => {
     k.add([
         k.text("Panda Runner", { size: 64 }),
@@ -37,7 +46,11 @@ k.scene("game", () => {
     const baseSpeed = 400;
     let score = 0;
 
-    // Physics
+    // Audio
+    const music = k.play("music", {
+        loop: true,
+        volume: 0.5,
+    });
     k.setGravity(1600);
 
     // Config
@@ -131,11 +144,15 @@ k.scene("game", () => {
         // 1. Time
         ui.timerLabel.time -= k.dt();
         if (ui.timerLabel.time <= 0) {
+            music.paused = true;
+            k.play("gameover");
             k.go("gameover", Math.floor(score));
         }
 
         // 2. Fall
         if (panda.pos.y > k.height()) {
+            music.paused = true;
+            k.play("gameover");
             k.shake(20);
             k.go("gameover", Math.floor(score));
         }
@@ -152,6 +169,7 @@ k.scene("game", () => {
 
     // Pie (+Time)
     panda.onCollide("pie", (pie) => {
+        k.play("pie");
         k.destroy(pie);
         ui.timerLabel.time += 10;
         k.shake(5);
@@ -159,6 +177,7 @@ k.scene("game", () => {
 
     // Cake (Speed Boost)
     panda.onCollide("cake", (cake) => {
+        k.play("cake");
         k.destroy(cake);
         gameSpeed = baseSpeed * 1.5;
         panda.setSpeedEffect("fast");
@@ -170,6 +189,7 @@ k.scene("game", () => {
 
     // Onion (Slow + Cry)
     panda.onCollide("onion", (onion) => {
+        k.play("onion");
         k.destroy(onion);
         gameSpeed = baseSpeed * 0.5;
         panda.setSpeedEffect("slow");
@@ -181,6 +201,7 @@ k.scene("game", () => {
 
     // Bamboo (Stun/Penalty)
     panda.onCollide("bamboo", (bamboo) => {
+        k.play("bamboo");
         k.destroy(bamboo);
         ui.timerLabel.time -= 5;
         k.shake(20);

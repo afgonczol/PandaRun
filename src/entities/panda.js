@@ -38,6 +38,7 @@ export function makePanda(k) {
     // Jump
     k.onKeyPress("space", () => {
         if (panda.isGrounded()) {
+            k.play("jump");
             panda.jump(800);
         }
     });
@@ -45,6 +46,7 @@ export function makePanda(k) {
     // Mouse click jump
     k.onMousePress(() => {
         if (panda.isGrounded()) {
+            k.play("jump");
             panda.jump(800);
         }
     });
