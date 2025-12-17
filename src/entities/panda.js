@@ -1,6 +1,6 @@
 export function makePanda(k) {
     const panda = k.add([
-        k.sprite("panda"),
+        k.sprite("panda", { anim: "run" }), // Start running immediately
         k.pos(200, k.height() - 150),
         k.area(), // Use default rect collision for now, can fine-tune later
         k.body(),

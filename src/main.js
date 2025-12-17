@@ -11,7 +11,12 @@ const k = kaplay({
 });
 
 // Load Assets
-k.loadSprite("panda", "sprites/panda.png");
+k.loadSprite("panda", "sprites/panda_run.png", {
+    sliceX: 2,
+    anims: {
+        run: { from: 0, to: 1, loop: true, speed: 10 },
+    },
+});
 k.loadSprite("bamboo", "sprites/bamboo.png");
 k.loadSprite("pie", "sprites/pie.png");
 k.loadSprite("cake", "sprites/cake.png");
@@ -160,8 +165,8 @@ k.scene("game", () => {
         // 3. Keep Panda fixed horizontally (counter friction)
         panda.pos.x = 200;
 
-        // Update Score
-        score += k.dt() * 10;
+        // Update Score (Distance based)
+        score += k.dt() * gameSpeed * 0.05;
         ui.scoreLabel.value = score;
     });
 

@@ -57,6 +57,33 @@ function spawnEntity(k, type) {
             k.anchor("center"),
             k.scale(scale),
             k.move(k.LEFT, 0), // Speed handled by game controller
+            k.rotate(0), // Enable rotation
+            {
+                startY: yPos,
+                baseScale: scale,
+                update() {
+                    // Bobbing (All items bob?)
+                    // User didn't say stop bobbing, just changed rotation.
+                    // "For the collectables, please animate by rotating and bobbing." (Previous)
+                    // "Instead of spinning... rotate back and forth... bamboo... size vary" (Current)
+                    // I will keep bobbing for collectables, maybe not for bamboo?
+                    // Usually obstacles don't bob floatingly unless they are flying. Bamboo is ground based.
+                    // Let's assume Bamboo is static position, Items bob.
+
+                    const t = k.time() * 5;
+
+                    if (spriteName === "bamboo") {
+                        // Bamboo: Scale pulse +/- 5%
+                        const pulse = Math.sin(t) * 0.05;
+                        this.scale = k.vec2(this.baseScale * (1 + pulse));
+                    } else if (spriteName !== "gap") {
+                        // Collectables: Bob + Swing
+                        this.pos.y = this.startY + Math.sin(t) * 10;
+                        // Swing +/- 15 degrees
+                        this.angle = Math.sin(t) * 15;
+                    }
+                }
+            },
             type, // Tag for collision
             "obstacle_mover"
         ]);
