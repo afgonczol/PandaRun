@@ -2,6 +2,8 @@ import { makePanda } from "./entities/panda.js";
 import { startSpawner } from "./systems/spawner.js";
 import { setupUI } from "./ui.js";
 
+
+
 const k = kaplay({
     width: 1280,
     height: 720,
@@ -268,14 +270,25 @@ k.scene("gameover", (score) => {
         k.anchor("center"),
     ]);
 
-    // High Score Logic
-    let highScore = localStorage.getItem("pandaRun_highScore") || 0;
+    // High Score Logic (Safe)
+    let highScore = 0;
     let isNewHighScore = false;
 
-    if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("pandaRun_highScore", highScore);
-        isNewHighScore = true;
+    try {
+        highScore = parseInt(localStorage.getItem("pandaRun_highScore")) || 0;
+
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("pandaRun_highScore", highScore.toString());
+            isNewHighScore = true;
+        }
+    } catch (e) {
+        console.warn("Storage access failed (likely sandboxed):", e);
+        // Fallback: If we can't save, we just show the score for this session
+        if (score > highScore) {
+            highScore = score;
+            isNewHighScore = true;
+        }
     }
 
     k.add([

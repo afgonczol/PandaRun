@@ -23,9 +23,12 @@
 </head>
 
 <body>
-    <script type="module">
-        import kaplay from "/node_modules/kaplay/dist/kaplay.mjs";
-        window.kaplay = kaplay;
+    <script type="importmap">
+        {
+            "imports": {
+                "kaplay": "/node_modules/kaplay/dist/kaplay.mjs"
+            }
+        }
     </script>
     <script type="module" src="./src/main.js"></script>
 </body>
