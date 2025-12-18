@@ -51,6 +51,7 @@ k.scene("game", () => {
     let gameSpeed = 400;
     const baseSpeed = 400;
     let score = 0;
+    let speedEffectTimer = 0; // Timer for speed effects
 
     // Audio
     const music = k.play("music", {
@@ -203,6 +204,16 @@ k.scene("game", () => {
         // Update Score (Distance based)
         score += k.dt() * gameSpeed * 0.05;
         ui.scoreLabel.value = score;
+
+        // Speed Effect Timer Logic
+        if (speedEffectTimer > 0) {
+            speedEffectTimer -= k.dt();
+            if (speedEffectTimer <= 0) {
+                // Revert to normal
+                gameSpeed = baseSpeed;
+                panda.resetEffect();
+            }
+        }
     });
 
     // --- Collisions ---
@@ -221,10 +232,7 @@ k.scene("game", () => {
         k.destroy(cake);
         gameSpeed = baseSpeed * 1.5;
         panda.setSpeedEffect("fast");
-        k.wait(5, () => {
-            gameSpeed = baseSpeed;
-            panda.resetEffect();
-        });
+        speedEffectTimer = 5; // Set timer
     });
 
     // Onion (Slow + Cry)
@@ -233,10 +241,7 @@ k.scene("game", () => {
         k.destroy(onion);
         gameSpeed = baseSpeed * 0.5;
         panda.setSpeedEffect("slow");
-        k.wait(5, () => {
-            gameSpeed = baseSpeed;
-            panda.resetEffect();
-        });
+        speedEffectTimer = 5; // Set timer
     });
 
     // Bamboo (Stun/Penalty)
@@ -246,21 +251,48 @@ k.scene("game", () => {
         ui.timerLabel.time -= 5;
         k.shake(20);
         panda.color = k.RED;
-        k.wait(0.2, () => panda.color = k.WHITE);
+        // Don't just reset to WHITE, use updateColor to respect current state
+        k.wait(0.2, () => panda.updateColor());
     });
 });
 
 k.scene("gameover", (score) => {
     k.add([
         k.text("Game Over", { size: 64 }),
-        k.pos(k.width() / 2, k.height() / 2 - 50),
+        k.pos(k.width() / 2, k.height() / 2 - 100),
         k.anchor("center"),
     ]);
     k.add([
         k.text(`Score: ${score}`, { size: 32 }),
+        k.pos(k.width() / 2, k.height() / 2),
+        k.anchor("center"),
+    ]);
+
+    // High Score Logic
+    let highScore = localStorage.getItem("pandaRun_highScore") || 0;
+    let isNewHighScore = false;
+
+    if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("pandaRun_highScore", highScore);
+        isNewHighScore = true;
+    }
+
+    k.add([
+        k.text(`High Score: ${highScore}`, { size: 32 }),
         k.pos(k.width() / 2, k.height() / 2 + 50),
         k.anchor("center"),
     ]);
+
+    if (isNewHighScore) {
+        k.add([
+            k.text("NEW HIGH SCORE!", { size: 48, font: "bold" }),
+            k.pos(k.width() / 2, k.height() / 2 - 50),
+            k.anchor("center"),
+            k.color(255, 215, 0) // Gold
+        ]);
+    }
+
     k.add([
         k.text("Press SPACE to Restart", { size: 24 }),
         k.pos(k.width() / 2, k.height() / 2 + 100),

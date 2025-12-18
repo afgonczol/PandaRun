@@ -15,22 +15,29 @@ export function makePanda(k) {
                 if (type === "fast") {
                     this.speedMultiplier = 1.2;
                     this.isCrying = false;
-                    this.color = k.WHITE;
                 } else if (type === "slow") {
                     this.speedMultiplier = 0.8;
                     this.isCrying = true;
-                    this.color = k.rgb(200, 200, 255); // Blue-ish tint for sadness
                 } else {
                     this.speedMultiplier = 1.0;
                     this.isCrying = false;
-                    this.color = k.WHITE;
                 }
+                this.updateColor();
             },
 
             resetEffect() {
                 this.speedMultiplier = 1.0;
                 this.isCrying = false;
-                this.color = k.WHITE;
+                this.updateColor();
+            },
+
+            updateColor() {
+                // If crying (slow), tint blue
+                if (this.isCrying) {
+                    this.color = k.rgb(200, 200, 255);
+                } else {
+                    this.color = k.WHITE;
+                }
             }
         }
     ]);
